@@ -9,7 +9,7 @@ fn read_buffered_input() -> BufReader<File> {
 
 fn main() {
     let mut num_of_increases = 0;
-    let buffered = read_buffered_input();
+    let mut buffered = read_buffered_input();
 
     // Part 1
     // let mut previous_num: Option<i32> = Option::None;
@@ -33,16 +33,16 @@ fn main() {
     // Part 2
     // Same as above, but now with the sum of a 3-part sliding window
     let mut window = DepthWindow::new();
-    for line in buffered.lines() {
-        let line = line.expect("Could not read line");
-        let num = line.parse::<i32>().expect("Could not parse line");
-        // let sum = previous_second_pos.unwrap() + previous_third_pos.unwrap() + num;
-        // let greater = sum > previous_sum.unwrap();
-        // if greater {
-        //     num_of_increases += 1;
-        // }
+    let mut buf = String::new();
+    while let Ok(n) = buffered.read_line(&mut buf) {
+        if n == 0 {
+            break;
+        }
+        trim_newline(&mut buf);
+        let num = buf.trim().parse::<i32>().expect("Could not parse line");
         if window.sum.is_none() {
             window.push(num);
+            buf.clear();
             continue;
         }
         let previous_sum = window.sum.unwrap();
@@ -50,11 +50,18 @@ fn main() {
         if window.sum.unwrap() > previous_sum {
             num_of_increases += 1;
         }
-        // previous_second_pos = previous_third_pos;
-        // previous_third_pos = Option::Some(num);
-        // previous_sum = Option::Some(sum);
+        buf.clear();
     }
     println!("Depth increases {} times", num_of_increases);
+}
+
+fn trim_newline(s: &mut String) {
+    if s.ends_with('\n') {
+        s.pop();
+        if s.ends_with('\r') {
+            s.pop();
+        }
+    }
 }
 
 struct DepthWindow {
